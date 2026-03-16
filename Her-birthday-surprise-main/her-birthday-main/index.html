@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HBD love</title>
+    <link type="text/css" rel="stylesheet" href="file/default.css">
+    <script type="text/javascript" src="file/jquery.min.js"></script>
+    <script type="text/javascript" src="file/jscex.min.js"></script>
+    <script type="text/javascript" src="file/jscex-parser.js"></script>
+    <script type="text/javascript" src="file/jscex-jit.js"></script>
+    <script type="text/javascript" src="file/jscex-builderbase.min.js"></script>
+    <script type="text/javascript" src="file/jscex-async.min.js"></script>
+    <script type="text/javascript" src="file/jscex-async-powerpack.min.js"></script>
+    <script type="text/javascript" src="file/function.js" charset="utf-8"></script>
+    <script type="text/javascript" src="file/love.js" charset="utf-8"></script>
+    <script>
+        function playAudio() {
+            var audio = document.getElementById("myAudio");
+            if (!audio) {
+                return;
+            }
+            var playPromise = audio.play();
+            if (playPromise && playPromise.catch) {
+                playPromise.catch(function () {});
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="main">
+        <div id="error" style="display: block;">Loading…</div>
+        <audio autoplay="autoplay" id="myAudio">
+            <source src="aud.mp3" type="audio/mp3">
+        </audio>
+
+        <div id="wrap">
+            <div id="text">
+                <div id="code">
+                    <span class="say">Happy Birthday.</span><br>
+                    <span class="say">Themba lakithi.</span><br>
+                    <span class="say">May your day be full of joy.</span><br>
+                    <span class="say">Ngikufisela Konke Okuhle Ozifisela Kona.</span><br>
+                    <span class="say">Thank you for every smile we share.</span><br>
+                    <span class="say">Now let me show you our little story.</span><br>
+                </div>
+            </div>
+
+            <canvas id="canvas" width="1100" height="680"></canvas>
+            <button type="button" id="open-memories" class="primary-btn">Open Our Memories</button>
+        </div>
+    </div>
+
+    <section id="memories-section" class="scene-section">
+        <div class="scene-card">
+            <h1>Our Beautiful Memories</h1>
+            <p class="subtitle">One photo, one small reminder of us.</p>
+
+            <div class="memory-photo-wrap">
+                <img id="memory-photo" src="Photos/Image (12).jfif" alt="Memory one">
+                <div id="memory-popup" class="memory-popup"></div>
+            </div>
+
+            <div class="memory-controls">
+                <button type="button" id="prev-memory" class="secondary-btn">Previous</button>
+                <span id="memory-count">1 / 6</span>
+                <button type="button" id="next-memory" class="primary-btn">Next</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="birthday-card-section" class="scene-section">
+        <div class="scene-card birthday-card">
+            <h1>Happy Birthday, My Love</h1>
+
+            <div class="final-card">
+                <h2>NONKANYEZI</h2>
+                <p id="card-preview-text"></p>
+            </div>
+        </div>
+    </section>
+
+    <script>
+    (function() {
+        var canvas = $('#canvas');
+
+        function showError(message) {
+            $('#error').text(message).show();
+            console.error(message);
+        }
+
+        try {
+            $('#error').hide();
+
+            if (!canvas[0].getContext) {
+                showError('Browser does not support canvas.');
+                return;
+            }
+
+            if (!window.Jscex) {
+                showError('Jscex library failed to load.');
+                return;
+            }
+
+            if (!window.Tree) {
+                showError('Tree class is missing (love.js not loaded).');
+                return;
+            }
+
+            // Fix canvas internal resolution so the drawing uses the intended coordinates
+            // while allowing the canvas to scale responsively via CSS.
+            var width = 1100;
+            var height = 680;
+            canvas.attr('width', width);
+            canvas.attr('height', height);
+
+        var opts = {
+            seed: {
+                x: width / 2 - 20,
+                color: 'rgb(190, 26, 37)',
+                scale: 2
+            },
+            branch: [
+                [535, 680, 570, 250, 500, 200, 30, 100, [
+                    [540, 500, 455, 417, 340, 400, 13, 100, [
+                        [450, 435, 434, 430, 394, 395, 2, 40]
+                    ]],
+                    [550, 445, 600, 356, 680, 345, 12, 100, [
+                        [578, 400, 648, 409, 661, 426, 3, 80]
+                    ]],
+                    [539, 281, 537, 248, 534, 217, 3, 40],
+                    [546, 397, 413, 247, 328, 244, 9, 80, [
+                        [427, 286, 383, 253, 371, 205, 2, 40],
+                        [498, 345, 435, 315, 395, 330, 4, 60]
+                    ]],
+                    [546, 357, 608, 252, 678, 221, 6, 100, [
+                        [590, 293, 646, 277, 648, 271, 2, 80]
+                    ]]
+                ]]
+            ],
+            bloom: {
+                num: 700,
+                width: 1080,
+                height: 650
+            },
+            footer: {
+                width: 1200,
+                height: 5,
+                speed: 10
+            }
+        };
+
+        var tree = new Tree(canvas[0], width, height, opts);
+        var seed = tree.seed;
+        var foot = tree.footer;
+        var hold = 1;
+
+        canvas.click(function(e) {
+            playAudio();
+            var offset = canvas.offset();
+            var x = e.pageX - offset.left;
+            var y = e.pageY - offset.top;
+            if (seed.hover(x, y)) {
+                hold = 0;
+                canvas.unbind('click');
+                canvas.unbind('mousemove');
+                canvas.removeClass('hand');
+            }
+        }).mousemove(function(e) {
+            var offset = canvas.offset();
+            var x = e.pageX - offset.left;
+            var y = e.pageY - offset.top;
+            canvas.toggleClass('hand', seed.hover(x, y));
+        });
+
+        var seedAnimate = eval(Jscex.compile('async', function () {
+            seed.draw();
+            while (hold) {
+                $await(Jscex.Async.sleep(10));
+            }
+            while (seed.canScale()) {
+                seed.scale(0.95);
+                $await(Jscex.Async.sleep(10));
+            }
+            while (seed.canMove()) {
+                seed.move(0, 2);
+                foot.draw();
+                $await(Jscex.Async.sleep(10));
+            }
+        }));
+
+        var growAnimate = eval(Jscex.compile('async', function () {
+            do {
+                tree.grow();
+                $await(Jscex.Async.sleep(10));
+            } while (tree.canGrow());
+        }));
+
+        var flowAnimate = eval(Jscex.compile('async', function () {
+            do {
+                tree.flower(2);
+                $await(Jscex.Async.sleep(10));
+            } while (tree.canFlower());
+        }));
+
+        var moveAnimate = eval(Jscex.compile('async', function () {
+            tree.snapshot('p1', 240, 0, 610, 680);
+            while (tree.move('p1', 500, 0)) {
+                foot.draw();
+                $await(Jscex.Async.sleep(10));
+            }
+            foot.draw();
+            tree.snapshot('p2', 500, 0, 610, 680);
+
+            canvas.parent().css('background', 'url(' + tree.toDataURL('image/png') + ')');
+            canvas.css('background', '#fff4ee');
+            $await(Jscex.Async.sleep(300));
+            canvas.css('background', 'none');
+        }));
+
+        var textAnimate = eval(Jscex.compile('async', function () {
+            var typingLength = $('#code').text().replace(/\s+/g, ' ').trim().length;
+            var typingDuration = Math.max(typingLength * 75 + 600, 4500);
+            $('#code').show().typewriter();
+            $await(Jscex.Async.sleep(typingDuration));
+            $('#open-memories').fadeIn(700);
+        }));
+
+        var runAsync = eval(Jscex.compile('async', function () {
+            $await(seedAnimate());
+            $await(growAnimate());
+            $await(flowAnimate());
+            $await(moveAnimate());
+            $await(textAnimate());
+        }));
+
+        var memories = [
+            { src: 'Photos/Image (12).jfif', alt: 'Memory one', note: 'This moment always reminds me how lucky I am.' },
+            { src: 'Photos/Image (14).jfif', alt: 'Memory two', note: 'I still smile every time I remember this day.' },
+            { src: 'Photos/Image (11).jfif', alt: 'Memory three', note: 'You looked so beautiful here.' },
+            { src: 'Photos/Image (9).jfif', alt: 'Memory four', note: 'One of my favorite memories with you.' },
+            { src: 'Photos/Image (10).jfif', alt: 'Memory five', note: 'Every little memory with you is precious.' },
+            { src: 'Photos/Image (13).jfif', alt: 'Memory six', note: 'And this is where I say: I love you forever.' }
+        ];
+        var finalCardMessage = [
+            'Themba Lami, kulezikhathi zobunzima esedlula kuzo ngicela ukukunika umoya wami',
+            'nawe ngokunjalo, ngoba uthando luyaye luhambe lube nezithiyo ezingenza sigcine sehlukana.',
+            'kanti ukuxhumana kwemimoya kuphela okuyokwenza lento esinayo ihlale iphila ngaphakathi kwethu.',
+            'Kuwe ngathathwa intobeko nenhlonipho ngyacela ungashintshi ubuwena, ngentobeko nenhlonipho yakho sewazakhela igumbi elikhethekile lapha kweyami inhliziyo. Uyingomuso lami Nonkanyezi, ungukukhanya kimi. Bengikuthanda izolo nanamuhla ngisakutha naksasa ngzobe ngikuthanda. Isfiso sami akusikho ukuba ube ingxenye yamaphupho ami kuphela kepha ngifisa ube ingxenye yowafeza lawomaphupho, ngicela uyeke ukungehlulela ebese ungamukela kwengiyikho. Kuyawephula umoya wami ukubona noma ukuzwa ungabaza uthando enginalo ngawe Mntakwethu, KaMgabadeli wena owagabadela izinkundla zakaBulawayo uthando engikuthanda ngalo alinamkhawulo akukho okuphila phansi kweLanga engingakufanisa noma ngikulinganise nalo. Ngifisa namhla iNtombi engizalayo uKaMadlanduna seyendulele kweliphakade yalandela uMyeni wayo ube uMama isbili kimi ungibonise ungihlahlamelise nalapho ngiphuma endleleni ungibuyisele njengoba enza uMama. Ukwakha iksasa ngyazi akusiyo into elula kepha uma ngizolakha nawe ngingakuqinisekisa ukuthi liyoba nokukhanya okuyofika nawe Nonkanyezi wami. Uyathandwa koSodi♥️'
+        ].join('\n');
+
+        var currentMemory = 0;
+
+        function fadeInFlex(selector) {
+            var el = $(selector);
+            el.css('display', 'flex').hide().fadeIn(700);
+        }
+
+        function showMemoryPopup(text) {
+            var popup = $('#memory-popup');
+            popup.stop(true, true);
+            popup.removeClass('show');
+            popup.text(text);
+            setTimeout(function () {
+                popup.addClass('show');
+            }, 60);
+        }
+
+        function renderMemory(index) {
+            var memory = memories[index];
+            $('#memory-photo').stop(true, true).fadeOut(140, function () {
+                $(this).attr('src', memory.src);
+                $(this).attr('alt', memory.alt);
+                $(this).fadeIn(230);
+            });
+
+            $('#memory-count').text((index + 1) + ' / ' + memories.length);
+            $('#prev-memory').prop('disabled', index === 0);
+            $('#next-memory').text(index === memories.length - 1 ? 'Open Card' : 'Next');
+            showMemoryPopup(memory.note);
+        }
+
+        function showMemoriesScene() {
+            $('#open-memories').prop('disabled', true);
+            $('#main').fadeOut(600, function () {
+                fadeInFlex('#memories-section');
+                renderMemory(currentMemory);
+            });
+        }
+
+        function showCardScene() {
+            $('#memories-section').fadeOut(600, function () {
+                fadeInFlex('#birthday-card-section');
+                updateCardPreview();
+            });
+        }
+
+        function updateCardPreview() {
+            $('#card-preview-text').text(finalCardMessage);
+        }
+
+        $('#open-memories').on('click', function () {
+            showMemoriesScene();
+        });
+
+        $('#prev-memory').on('click', function () {
+            if (currentMemory > 0) {
+                currentMemory -= 1;
+                renderMemory(currentMemory);
+            }
+        });
+
+        $('#next-memory').on('click', function () {
+            if (currentMemory < memories.length - 1) {
+                currentMemory += 1;
+                renderMemory(currentMemory);
+                return;
+            }
+            showCardScene();
+        });
+
+        $(document).on('keydown', function (event) {
+            if (!$('#memories-section').is(':visible')) {
+                return;
+            }
+            if (event.key === 'ArrowLeft') {
+                $('#prev-memory').trigger('click');
+            }
+            if (event.key === 'ArrowRight') {
+                $('#next-memory').trigger('click');
+            }
+        });
+
+        updateCardPreview();
+        runAsync().start();
+    } catch (err) {
+        showError('Error running animation: ' + (err && err.message ? err.message : err));
+    }
+    })();
+    </script>
+</body>
+</html>

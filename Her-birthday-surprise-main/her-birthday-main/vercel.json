@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "her-birthday-main/index.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/her-birthday-main/index.html"
+    }
+  ]
+}</content>
+<parameter name="filePath">c:\Users\sodil\Downloads\Her-birthday-surprise-main\Her-birthday-surprise-main\vercel.json
