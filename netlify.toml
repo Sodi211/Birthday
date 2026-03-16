@@ -1,3 +1,8 @@
 [build]
   command = ""
   publish = "Her-birthday-surprise-main/her-birthday-main"
+  
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
